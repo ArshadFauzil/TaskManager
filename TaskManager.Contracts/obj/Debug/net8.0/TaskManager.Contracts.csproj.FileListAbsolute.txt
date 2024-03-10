@@ -1,0 +1,11 @@
+/Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager.Contracts/bin/Debug/net8.0/TaskManager.Contracts.deps.json
+/Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager.Contracts/bin/Debug/net8.0/TaskManager.Contracts.dll
+/Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager.Contracts/bin/Debug/net8.0/TaskManager.Contracts.pdb
+/Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager.Contracts/obj/Debug/net8.0/TaskManager.Contracts.GeneratedMSBuildEditorConfig.editorconfig
+/Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager.Contracts/obj/Debug/net8.0/TaskManager.Contracts.AssemblyInfoInputs.cache
+/Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager.Contracts/obj/Debug/net8.0/TaskManager.Contracts.AssemblyInfo.cs
+/Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager.Contracts/obj/Debug/net8.0/TaskManager.Contracts.csproj.CoreCompileInputs.cache
+/Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager.Contracts/obj/Debug/net8.0/TaskManager.Contracts.dll
+/Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager.Contracts/obj/Debug/net8.0/refint/TaskManager.Contracts.dll
+/Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager.Contracts/obj/Debug/net8.0/TaskManager.Contracts.pdb
+/Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager.Contracts/obj/Debug/net8.0/ref/TaskManager.Contracts.dll
