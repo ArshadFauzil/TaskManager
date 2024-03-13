@@ -68,7 +68,7 @@ public class TasksController : ApiController
         ErrorOr<Guid> newTaskCommentCreationResult = _taskservice.createTaskComment(request);
 
         return newTaskCommentCreationResult.Match(
-            newTaskCommentId => getTaskCommentCreatedAtActionResult(newTaskCommentId, request.TaskId),
+            newTaskCommentId => getTaskCommentCreatedAtActionResult(newTaskCommentId),
             errors => Problem(errors)
         );
     }
@@ -111,6 +111,46 @@ public class TasksController : ApiController
     }
 
 
+    //FILES
+
+    [HttpPost]
+    [Route("files")]
+    public async Task<IActionResult> CreateTaskFile([FromForm] CreateTaskFilesRequest request)
+    {
+        ErrorOr<List<Guid>> newTaskFileCreationResult = await _taskservice.CreateUserTaskFile(request);
+
+        return newTaskFileCreationResult.Match(
+            newTaskFileIds => getTaskFileCreatedAtActionResult(newTaskFileIds),
+            errors => Problem(errors)
+        );
+    }
+
+    [HttpGet("{taskId}/files")]
+    public async Task<IActionResult> GetTaskFilesByTaskId(Guid taskId)
+    {
+        ErrorOr<TaskFileResponse> fileRetrievalResult = await _taskservice.getUserTaskFilesByTaskId(taskId);
+
+        return fileRetrievalResult.Match(
+            taskFileResponse =>
+            {
+                return taskFileResponse.files.Count > 0 ? Ok(taskFileResponse) : NoContent();
+            },
+            errors => Problem(errors)
+        );
+    }
+
+    [HttpDelete("files/{id}")]
+    public IActionResult DeleteTaskFile(Guid id)
+    {
+        ErrorOr<Deleted> deleteResult = _taskservice.DeleteTaskFile(id);
+
+        return deleteResult.Match(
+            deleted => Ok(),
+            errors => Problem(errors)
+        );
+    }
+
+
     private CreatedAtActionResult getTaskCreatedAtActionResult(Guid newTaskId)
     {
         return CreatedAtAction(
@@ -119,12 +159,20 @@ public class TasksController : ApiController
             value: newTaskId);
     }
 
-    private CreatedAtActionResult getTaskCommentCreatedAtActionResult(Guid newCommentId, Guid taskId)
+    private CreatedAtActionResult getTaskCommentCreatedAtActionResult(Guid newCommentId)
     {
         return CreatedAtAction(
             null,
             null,
             value: newCommentId);
+    }
+
+    private CreatedAtActionResult getTaskFileCreatedAtActionResult(List<Guid> newFileIds)
+    {
+        return CreatedAtAction(
+            null,
+            null,
+            value: newFileIds);
     }
 
 

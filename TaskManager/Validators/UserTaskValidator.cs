@@ -15,8 +15,13 @@ public class UserTaskValidator : IUserTaskValidator
         string description = request.Description;
         DateTime? dueDate = request.DueDate;
 
-        List<Error> generalErrors = ValidateUserTaskCreateAndUpdateRequest(title, description, dueDate);
-        errors.AddRange(generalErrors);
+        if (title is null || description is null || dueDate is null)
+        {
+            errors.Add(Errors.Tasks.MissingFieldsTaskCreateRequest);
+        }
+
+        List<Error> commonErrors = ValidateUserTaskCreateAndUpdateRequest(title, description, dueDate);
+        errors.AddRange(commonErrors);
 
         return errors;
     }
@@ -28,6 +33,11 @@ public class UserTaskValidator : IUserTaskValidator
         string description = request.Description;
         DateTime? dueDate = request.DueDate;
         string status = request.Status;
+
+        if (title is null || description is null || dueDate is null || status is null)
+        {
+            errors.Add(Errors.Tasks.MissingFieldsTaskUpdateRequest);
+        }
 
         errors.AddRange(ValidateUserTaskCreateAndUpdateRequest(title, description, dueDate));
 
@@ -42,7 +52,13 @@ public class UserTaskValidator : IUserTaskValidator
     public List<Error> ValidateUserTaskCommentCreateRequest(CreateTaskCommentRequest request)
     {
         List<Error> errors = new();
+        Guid? taskId = request.TaskId;
         string comment = request.Comment;
+
+        if (taskId is null || comment is null)
+        {
+            errors.Add(Errors.Comments.MissingFieldsCommentCreateRequest);
+        }
 
         errors.AddRange(ValidateUserTaskCommentCreateAndUpdateRequest(comment));
 
@@ -54,7 +70,58 @@ public class UserTaskValidator : IUserTaskValidator
         List<Error> errors = new();
         string comment = request.Comment;
 
+        if (comment is null)
+        {
+            errors.Add(Errors.Comments.MissingFieldsCommentUpdateRequest);
+        }
+
         errors.AddRange(ValidateUserTaskCommentCreateAndUpdateRequest(comment));
+
+        return errors;
+    }
+
+    public List<Error> ValidateUserTaskFileCreateRequest(CreateTaskFilesRequest request)
+    {
+        List<Error> errors = new();
+        Guid? taskId = request.TaskId;
+        List<CreateTaskFileContract>? files = request.Files;
+
+        if (taskId is null || files is null)
+        {
+            errors.Add(Errors.Files.MissingFieldsFilesCreateRequest);
+        }
+
+        bool nullValuesIsList = false;
+        bool missingFieldsInFileData = false;
+        files.ForEach(file =>
+        {
+            if (file is null)
+            {
+                nullValuesIsList = true;
+            }
+            else
+            {
+                IFormFile? fileForm = file.File;
+                string? fileType = file.FileType;
+
+                if (fileForm is null || fileType is null)
+                {
+                    missingFieldsInFileData = true;
+                }
+            }
+
+
+        });
+
+        if (nullValuesIsList)
+        {
+            errors.Add(Errors.Files.MissingItemsInFilesList);
+        }
+
+        if (missingFieldsInFileData)
+        {
+            errors.Add(Errors.Files.MissingFieldsFilesCreateRequestFileData);
+        }
 
         return errors;
     }
@@ -62,11 +129,6 @@ public class UserTaskValidator : IUserTaskValidator
     private List<Error> ValidateUserTaskCreateAndUpdateRequest(string title, string description, DateTime? dueDate)
     {
         List<Error> errors = new();
-
-        if (title is null || description is null || dueDate is null)
-        {
-            errors.Add(Errors.Tasks.MissingFieldsCreateUpdateRequest);
-        }
 
         if (title is not null && title.Length is < UserTaskDataModel.MinTitleLength
                 or > UserTaskDataModel.MaxTitleLength)

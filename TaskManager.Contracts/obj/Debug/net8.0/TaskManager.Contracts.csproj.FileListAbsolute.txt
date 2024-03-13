@@ -10,3 +10,4 @@
 /Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager.Contracts/obj/Debug/net8.0/TaskManager.Contracts.pdb
 /Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager.Contracts/obj/Debug/net8.0/ref/TaskManager.Contracts.dll
 /Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager.Contracts/obj/Debug/net8.0/TaskManager.Contracts.sourcelink.json
+/Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager.Contracts/obj/Debug/net8.0/TaskManager.Contracts.csproj.AssemblyReference.cache

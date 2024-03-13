@@ -95,6 +95,12 @@ public class TaskService : ITaskService
             return errors;
         }
 
+        bool userTaskExists = _userTaskRepository.DoesUserTaskExist(request.TaskId.Value);
+        if (!userTaskExists)
+        {
+            return Errors.Tasks.NotFoundValidation;
+        }
+
         UserTaskCommentDataModel userTaskCommentToCreate = MapUserTaskCommentCreateRequestToDataModel(request);
         Guid newId = _userTaskRepository.CreateUserTaskComment(userTaskCommentToCreate);
         return newId;
@@ -121,7 +127,6 @@ public class TaskService : ITaskService
         }
 
         List<Error> errors = _userTaskValidator.ValidateUserTaskCommentUpdateRequest(request);
-
         if (errors.Any())
         {
             return errors;
@@ -149,8 +154,64 @@ public class TaskService : ITaskService
     }
 
 
+    // FILES
 
-    public UserTaskDataModel MapUserTaskCreateRequestToDataModel(CreateTaskRequest request)
+    public async Task<ErrorOr<List<Guid>>> CreateUserTaskFile(CreateTaskFilesRequest request)
+    {
+        List<Error> errors = _userTaskValidator.ValidateUserTaskFileCreateRequest(request);
+        if (errors.Any())
+        {
+            return errors;
+        }
+
+        try
+        {
+            List<UserTaskFileDataModel> dataModels = MapUserTaskFileCreateRequestToDataModel(request);
+
+            List<Guid> fileIds = new();
+            foreach (UserTaskFileDataModel dataModel in dataModels)
+            {
+                Guid fileId = await _userTaskRepository.CreateUserTaskFile(dataModel);
+                fileIds.Add(fileId);
+            }
+
+            return fileIds;
+        }
+        catch (Exception ex)
+        {
+            throw ex;
+        }
+    }
+
+    public async Task<ErrorOr<TaskFileResponse>> getUserTaskFilesByTaskId(Guid taskId)
+    {
+        bool userTaskExists = _userTaskRepository.DoesUserTaskExist(taskId);
+        if (!userTaskExists)
+        {
+            return Errors.Tasks.NotFoundValidation;
+        }
+
+        List<UserTaskFileDataModel> fileDataModels = await _userTaskRepository.getUserTaskFilesByTaskId(taskId);
+
+        return MapUserTaskDataFileModelToResponse(taskId, fileDataModels);
+    }
+
+    public ErrorOr<Deleted> DeleteTaskFile(Guid id)
+    {
+        UserTaskFileDataModel persistedFile = _userTaskRepository.getUserTaskFileById(id);
+        if (persistedFile is null)
+        {
+            return Errors.Files.NotFoundValidation;
+        }
+
+        _userTaskRepository.DeleteUserTaskFile(persistedFile);
+
+        return Result.Deleted;
+    }
+
+
+
+    private UserTaskDataModel MapUserTaskCreateRequestToDataModel(CreateTaskRequest request)
     {
         // status is set to INCOMPLETE at the point of creation
         return new UserTaskDataModel(
@@ -162,7 +223,7 @@ public class TaskService : ITaskService
         );
     }
 
-    public UserTaskDataModel MapUserTaskUpdateRequestToDataModel(Guid id, UpdateTaskRequest request)
+    private UserTaskDataModel MapUserTaskUpdateRequestToDataModel(Guid id, UpdateTaskRequest request)
     {
         Enum.TryParse(request.Status, out StatusEnum statusToUpdate);
         UserTaskDataModel dataModel = new UserTaskDataModel(
@@ -177,16 +238,16 @@ public class TaskService : ITaskService
         return dataModel;
     }
 
-    public UserTaskCommentDataModel MapUserTaskCommentCreateRequestToDataModel(CreateTaskCommentRequest request)
+    private UserTaskCommentDataModel MapUserTaskCommentCreateRequestToDataModel(CreateTaskCommentRequest request)
     {
         return new UserTaskCommentDataModel(
-            request.TaskId,
+            request.TaskId.Value,
             request.Comment,
             DateTime.Now
         );
     }
 
-    public UserTaskCommentDataModel MapUserTaskCommentUpdateRequestToDataModel(Guid Id, Guid TaskId, UpdateTaskCommentRequest request)
+    private UserTaskCommentDataModel MapUserTaskCommentUpdateRequestToDataModel(Guid Id, Guid TaskId, UpdateTaskCommentRequest request)
     {
         return new UserTaskCommentDataModel(
             Id,
@@ -196,7 +257,31 @@ public class TaskService : ITaskService
         );
     }
 
-    public TaskResponse MapUserTaskDataModelToResponse(UserTaskDataModel model)
+    private List<UserTaskFileDataModel> MapUserTaskFileCreateRequestToDataModel(CreateTaskFilesRequest request)
+    {
+        List<UserTaskFileDataModel> dataModels = new();
+        List<CreateTaskFileContract>? files = request.Files;
+
+        files.ForEach(fileContract =>
+        {
+            var stream = new MemoryStream();
+            fileContract.File.CopyTo(stream);
+
+            dataModels.Add(
+                new UserTaskFileDataModel(
+                    request.TaskId.Value,
+                    fileContract.File.FileName,
+                    fileContract.FileType,
+                    stream.ToArray(),
+                    DateTime.Now
+                )
+            );
+        });
+
+        return dataModels;
+    }
+
+    private TaskResponse MapUserTaskDataModelToResponse(UserTaskDataModel model)
     {
         return new TaskResponse(
             model.Id,
@@ -208,9 +293,10 @@ public class TaskService : ITaskService
         );
     }
 
-    public List<TaskCommentResponse> MapUserTaskDataCommentModelToResponse(List<UserTaskCommentDataModel> comments)
+    private List<TaskCommentResponse> MapUserTaskDataCommentModelToResponse(List<UserTaskCommentDataModel> comments)
     {
         List<TaskCommentResponse> responseList = new();
+
         comments.ForEach(c =>
         {
             responseList.Add(new TaskCommentResponse(
@@ -222,6 +308,29 @@ public class TaskService : ITaskService
         });
 
         return responseList;
+    }
+
+    private TaskFileResponse MapUserTaskDataFileModelToResponse(Guid taskId, List<UserTaskFileDataModel> files)
+    {
+        List<TaskFileResponseFileContract> fileList = new();
+
+        foreach (UserTaskFileDataModel file in files)
+        {
+            var dataStream = new MemoryStream(file.FileData);
+
+            fileList.Add(new TaskFileResponseFileContract(
+                file.Id,
+                new StreamContent(dataStream),
+                file.FileName,
+                file.FileType,
+                file.LastUpdatedDate
+            ));
+        }
+
+        return new TaskFileResponse(
+            taskId,
+            fileList
+        );
     }
 
 }

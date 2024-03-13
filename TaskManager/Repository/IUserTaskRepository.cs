@@ -15,4 +15,9 @@ public interface IUserTaskRepository
     public List<UserTaskCommentDataModel> GetUserTaskCommentsByTaskId(Guid taskId);
     public void UpdateUserTaskComment(UserTaskCommentDataModel userTaskCommentToUpdate);
     public void DeleteUserTaskComment(UserTaskCommentDataModel userTaskCommentToUpdate);
+    public Task<Guid> CreateUserTaskFile(UserTaskFileDataModel userTaskFileToCreate);
+    public Task<List<UserTaskFileDataModel>> getUserTaskFilesByTaskId(Guid taskId);
+    public UserTaskFileDataModel getUserTaskFileById(Guid id);
+    public Task DeleteUserTaskFile(UserTaskFileDataModel userTaskFileToDelete);
+
 }

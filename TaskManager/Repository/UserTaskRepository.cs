@@ -100,4 +100,52 @@ public class UserTaskRepository : IUserTaskRepository
         _dbContext.Comments.Remove(userTaskCommentToUpdate);
         _dbContext.SaveChanges();
     }
+
+
+    //FILES
+
+    public async Task<Guid> CreateUserTaskFile(UserTaskFileDataModel userTaskFileToCreate)
+    {
+        _dbContext.Files.Add(userTaskFileToCreate);
+        await _dbContext.SaveChangesAsync();
+
+        return userTaskFileToCreate.Id;
+    }
+
+    public async Task<List<UserTaskFileDataModel>> getUserTaskFilesByTaskId(Guid taskId)
+    {
+        return await _dbContext.Files
+            .Where(c => c.TaskId == taskId)
+            .ToListAsync();
+    }
+
+    public UserTaskFileDataModel getUserTaskFilesById(Guid id)
+    {
+        if (_dbContext.Files.Find(id) is UserTaskFileDataModel userTaskFile)
+        {
+            return userTaskFile;
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+    public UserTaskFileDataModel getUserTaskFileById(Guid id)
+    {
+        if (_dbContext.Files.Find(id) is UserTaskFileDataModel userTaskFileData)
+        {
+            return userTaskFileData;
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+    public async Task DeleteUserTaskFile(UserTaskFileDataModel userTaskFileToDelete)
+    {
+        _dbContext.Files.Remove(userTaskFileToDelete);
+        await _dbContext.SaveChangesAsync();
+    }
 }

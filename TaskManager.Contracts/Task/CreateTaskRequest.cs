@@ -1,7 +1,7 @@
 namespace TaskManager.Contracts.Task;
 
 public record CreateTaskRequest(
-    string Title,
-    string Description,
+    string? Title,
+    string? Description,
     DateTime? DueDate
 );
