@@ -1,8 +1,7 @@
 namespace TaskManager.Contracts.Task;
 
-public record UpdateTaskRequest(
+public record CreateUpdateBaseRequest(
     string Title,
     string Description,
-    DateTime? DueDate,
-    string Status
+    DateTime? DueDate
 );

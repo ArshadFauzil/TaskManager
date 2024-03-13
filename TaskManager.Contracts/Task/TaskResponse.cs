@@ -1,4 +1,4 @@
-namespace TaskManger.Contracts.Task;
+namespace TaskManager.Contracts.Task;
 
 public record TaskResponse(
     Guid Id,

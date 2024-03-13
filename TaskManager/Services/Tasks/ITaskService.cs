@@ -1,17 +1,17 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
-using TaskManager.Models;
-using TaskManger.Contracts.Task;
+using ErrorOr;
+using TaskManager.Contracts.Task;
 
 namespace TaskManager.Services.Tasks;
 
 public interface ITaskService
 {
-    public void createTask(UserTask newTask);
-    public UserTask getTask(Guid id);
-    public void UpdateTask(UserTask task);
-    public void DeleteTask(Guid id);
-    
+    public ErrorOr<Guid> createTask(CreateTaskRequest request);
+    public ErrorOr<TaskResponse> getTask(Guid id);
+    public ErrorOr<Updated> UpdateTask(Guid id, UpdateTaskRequest request);
+    public ErrorOr<Deleted> DeleteTask(Guid id);
+    public ErrorOr<Guid> createTaskComment(CreateTaskCommentRequest request);
+    public ErrorOr<List<TaskCommentResponse>> getUserTaskCommentsByTaskId(Guid taskId);
+    public ErrorOr<Updated> UpdateTaskComment(Guid id, UpdateTaskCommentRequest request);
+    public ErrorOr<Deleted> DeleteTaskComment(Guid id);
+
 }

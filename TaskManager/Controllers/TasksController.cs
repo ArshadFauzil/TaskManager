@@ -1,14 +1,11 @@
+using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
-using TaskManager.Enumerations;
-using TaskManager.Models;
+using TaskManager.Contracts.Task;
 using TaskManager.Services.Tasks;
-using TaskManger.Contracts.Task;
 
 namespace TaskManager.Controllers;
 
-[ApiController]
-[Route("api/v1/[controller]")]
-public class TasksController : ControllerBase
+public class TasksController : ApiController
 {
     private readonly ITaskService _taskservice;
 
@@ -20,63 +17,115 @@ public class TasksController : ControllerBase
     [HttpPost]
     public IActionResult CreateTask(CreateTaskRequest request)
     {
+        ErrorOr<Guid> newTaskCreationResult = _taskservice.createTask(request);
 
-        Guid id = Guid.NewGuid();
-
-        UserTask task = new UserTask(
-            id,
-            request.Title,
-            request.Description,
-            request.DueDate,
-            StatusEnum.COMPLETE,
-            DateTime.UtcNow
+        return newTaskCreationResult.Match(
+            newTaskId => getTaskCreatedAtActionResult(newTaskCreationResult.Value),
+            errors => Problem(errors)
         );
-
-        _taskservice.createTask(task);
-
-        var response = new TaskResponse(
-            task.Id,
-            task.Title,
-            task.Description,
-            task.DueDate,
-            nameof(task.Status),
-            task.LastUpdatedDate
-        );
-
-
-        return CreatedAtAction(
-            actionName: nameof(GetTask),
-            routeValues: new { id = task.Id },
-            value: response);
     }
 
     [HttpGet("{id}")]
     public IActionResult GetTask(Guid id)
     {
-        UserTask task = _taskservice.getTask(id);
+        ErrorOr<TaskResponse> taskRetrievalResult = _taskservice.getTask(id);
 
-        TaskResponse response = new TaskResponse(
-            task.Id,
-            task.Title,
-            task.Description,
-            task.DueDate,
-            nameof(task.Status),
-            task.LastUpdatedDate
+        return taskRetrievalResult.Match(
+            taskResponse => Ok(taskResponse),
+            errors => Problem(errors)
         );
-
-        return Ok(response);
     }
 
     [HttpPut("{id}")]
-    public IActionResult UpdateTask(Guid id, UpdateTaskRequest updateTaskRequest)
+    public IActionResult UpdateTask(Guid id, UpdateTaskRequest request)
     {
-        return Ok(updateTaskRequest);
+        ErrorOr<Updated> updateResult = _taskservice.UpdateTask(id, request);
+
+        return updateResult.Match(
+            updated => Ok(),
+            errors => Problem(errors)
+        );
     }
 
     [HttpDelete("{id}")]
     public IActionResult DeleteTask(Guid id)
     {
-        return Ok(id);
+        ErrorOr<Deleted> deleteResult = _taskservice.DeleteTask(id);
+
+        return deleteResult.Match(
+            deleted => Ok(),
+            errors => Problem(errors)
+        );
     }
+
+
+    //COMMENTS
+
+    [HttpPost]
+    [Route("comments")]
+    public IActionResult CreateTaskComment(CreateTaskCommentRequest request)
+    {
+        ErrorOr<Guid> newTaskCommentCreationResult = _taskservice.createTaskComment(request);
+
+        return newTaskCommentCreationResult.Match(
+            newTaskCommentId => getTaskCommentCreatedAtActionResult(newTaskCommentId, request.TaskId),
+            errors => Problem(errors)
+        );
+    }
+
+    [HttpGet("{taskId}/comments")]
+    public IActionResult GetTaskCommentsByTaskId(Guid taskId)
+    {
+        ErrorOr<List<TaskCommentResponse>> commentsRetrievalResult = _taskservice.getUserTaskCommentsByTaskId(taskId);
+
+        return commentsRetrievalResult.Match(
+            taskCommentsResponse =>
+            {
+                List<TaskCommentResponse> comments = taskCommentsResponse;
+                return comments.Any() ? Ok(comments) : NoContent();
+            },
+            errors => Problem(errors)
+        );
+    }
+
+    [HttpPut("comments/{id}")]
+    public IActionResult UpdateTaskComment(Guid id, UpdateTaskCommentRequest request)
+    {
+        ErrorOr<Updated> updateResult = _taskservice.UpdateTaskComment(id, request);
+
+        return updateResult.Match(
+            updated => Ok(),
+            errors => Problem(errors)
+        );
+    }
+
+    [HttpDelete("comments/{id}")]
+    public IActionResult DeleteTaskComment(Guid id)
+    {
+        ErrorOr<Deleted> deleteResult = _taskservice.DeleteTaskComment(id);
+
+        return deleteResult.Match(
+            deleted => Ok(),
+            errors => Problem(errors)
+        );
+    }
+
+
+    private CreatedAtActionResult getTaskCreatedAtActionResult(Guid newTaskId)
+    {
+        return CreatedAtAction(
+            actionName: nameof(GetTask),
+            routeValues: new { id = newTaskId },
+            value: newTaskId);
+    }
+
+    private CreatedAtActionResult getTaskCommentCreatedAtActionResult(Guid newCommentId, Guid taskId)
+    {
+        return CreatedAtAction(
+            null,
+            null,
+            value: newCommentId);
+    }
+
 
 }

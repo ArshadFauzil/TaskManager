@@ -1,0 +1,4 @@
+TaskManager/Migrations/*
+TaskManager/TaskManager.db-wal
+TaskManager/bin/*
+TaskManager.Contracts/obj/*

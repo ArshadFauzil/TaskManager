@@ -1,12 +1,16 @@
-using TaskManager.DatabaseContext;
+using TaskManager.Persistence;
+using TaskManager.Repository;
 using TaskManager.Services.Tasks;
+using TaskManager.Validators;
 ;
 
 var builder = WebApplication.CreateBuilder(args);
 {
     builder.Services.AddControllers();
-    builder.Services.AddSingleton<ITaskService, TaskService>();
     builder.Services.AddDbContext<TaskManagerDbContext>();
+    builder.Services.AddScoped<ITaskService, TaskService>();
+    builder.Services.AddScoped<IUserTaskValidator, UserTaskValidator>();
+    builder.Services.AddScoped<IUserTaskRepository, UserTaskRepository>();
 }
 
 // Add services to the container.

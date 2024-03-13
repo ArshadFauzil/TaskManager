@@ -1,7 +1,7 @@
 {
   "format": 1,
   "restore": {
-    "/Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager/TaskManager.csproj": {}
+    "/Users/arshadfauzil/code_projects/TaskManager/TaskManager/Taskmanager/TaskManager.csproj": {}
   },
   "projects": {
     "/Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager.Contracts/TaskManager.Contracts.csproj": {
@@ -62,14 +62,14 @@
         }
       }
     },
-    "/Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager/TaskManager.csproj": {
+    "/Users/arshadfauzil/code_projects/TaskManager/TaskManager/Taskmanager/TaskManager.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager/TaskManager.csproj",
+        "projectUniqueName": "/Users/arshadfauzil/code_projects/TaskManager/TaskManager/Taskmanager/TaskManager.csproj",
         "projectName": "TaskManager",
-        "projectPath": "/Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager/TaskManager.csproj",
+        "projectPath": "/Users/arshadfauzil/code_projects/TaskManager/TaskManager/Taskmanager/TaskManager.csproj",
         "packagesPath": "/Users/arshadfauzil/.nuget/packages/",
-        "outputPath": "/Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager/obj/",
+        "outputPath": "/Users/arshadfauzil/code_projects/TaskManager/TaskManager/Taskmanager/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/Users/arshadfauzil/.nuget/NuGet/NuGet.Config"
@@ -113,7 +113,21 @@
               "target": "Package",
               "version": "[8.0.2, )"
             },
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[8.0.2, )"
+            },
+            "Microsoft.EntityFrameworkCore.Design": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[8.0.2, )"
+            },
             "Microsoft.EntityFrameworkCore.InMemory": {
+              "target": "Package",
+              "version": "[8.0.2, )"
+            },
+            "Microsoft.EntityFrameworkCore.Sqlite": {
               "target": "Package",
               "version": "[8.0.2, )"
             },
