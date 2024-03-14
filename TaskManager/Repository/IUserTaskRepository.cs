@@ -7,7 +7,7 @@ public interface IUserTaskRepository
 {
     public Guid CreateUserTask(UserTaskDataModel userTaskToCreate);
     public UserTaskDataModel GetUserTaskById(Guid id);
-    public Task<List<UserTaskDataModel>> getAllUserTasks();
+    public Task<List<UserTaskDataModel>> getAllUserTasks(int pageNumber);
     public Boolean DoesUserTaskExist(Guid id);
     public void UpdateUserTask(UserTaskDataModel userTaskToUpdate);
     public void DeleteUserTask(UserTaskDataModel userTaskToDelete);

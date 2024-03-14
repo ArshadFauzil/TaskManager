@@ -26,12 +26,12 @@ public class TasksController : ApiController
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAllUserTasks()
+    public async Task<IActionResult> GetAllUserTasks(int pageNumber)
     {
-        ErrorOr<List<TaskResponse>> taskRetrievalResult = await _taskservice.getAllUserTasks();
+        ErrorOr<List<TaskResponse>> taskRetrievalResult = await _taskservice.getAllUserTasks(pageNumber);
 
         return taskRetrievalResult.Match(
-            taskResponseList => Ok(taskResponseList),
+            taskResponseList => taskResponseList.Count > 0 ? Ok(taskResponseList) : NoContent(),
             errors => Problem(errors)
         );
     }

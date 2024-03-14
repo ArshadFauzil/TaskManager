@@ -16,8 +16,11 @@ public class TaskService : ITaskService
     private readonly IUserTaskRepository _userTaskRepository;
     private readonly IUserTaskValidator _userTaskValidator;
     private readonly ILogger<TaskService> _logger;
-    private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
     private readonly IMemoryCache _cache;
+    private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
+
+    private static List<string> cachedUserTasksPageNumbers = new();
+
 
     public TaskService(IUserTaskRepository userTaskRepository,
                         IUserTaskValidator userTaskValidator,
@@ -42,15 +45,17 @@ public class TaskService : ITaskService
         UserTaskDataModel userTaskToCreate = MapUserTaskCreateRequestToDataModel(request);
         Guid newId = _userTaskRepository.CreateUserTask(userTaskToCreate);
 
-        _cache.Remove(AppConstants.UserTaskCachingKey);
+        emptyUserTasksCache();
 
         return newId;
 
     }
 
-    public async Task<ErrorOr<List<TaskResponse>>> getAllUserTasks()
+    public async Task<ErrorOr<List<TaskResponse>>> getAllUserTasks(int pageNumber)
     {
-        if (_cache.TryGetValue(AppConstants.UserTaskCachingKey, out List<TaskResponse>? userTasks))
+        string cacheKey = pageNumber.ToString();
+        List<TaskResponse>? userTasks = (List<TaskResponse>)CacheExtensions.Get(_cache, cacheKey);
+        if (userTasks is not null)
         {
             _logger.LogInformation("User Tasks list returned from cache.");
         }
@@ -60,15 +65,23 @@ public class TaskService : ITaskService
             try
             {
                 await semaphore.WaitAsync();
-                List<UserTaskDataModel> userTaskDataModels = await _userTaskRepository.getAllUserTasks();
+                List<UserTaskDataModel> userTaskDataModels = await _userTaskRepository.getAllUserTasks(pageNumber);
                 userTasks = MapUserTaskDataModelListToResponse(userTaskDataModels);
 
                 var cacheEntryOptions = new MemoryCacheEntryOptions()
-                    .SetSlidingExpiration(TimeSpan.FromSeconds(AppConstants.cachingSlidingExpiration))
-                    .SetAbsoluteExpiration(TimeSpan.FromSeconds(AppConstants.cachingAbsoluteExpiration))
+                    .SetSlidingExpiration(TimeSpan.FromSeconds(AppConstants.CACHING_SLIDING_EXPIRATION_SECONDS))
+                    .SetAbsoluteExpiration(TimeSpan.FromSeconds(AppConstants.CACHING_ABSOLUTE_EXPIRATION_SECONDS))
                     .SetPriority(CacheItemPriority.Normal)
-                    .SetSize(AppConstants.cachingMemorySize);
-                _cache.Set(AppConstants.UserTaskCachingKey, userTasks, cacheEntryOptions);
+                    .SetSize(AppConstants.CACHING_MEMORY_SIZE);
+
+                if (userTasks.Count > 0)
+                {
+                    _logger.LogInformation("Caching page number {PN}", pageNumber);
+
+                    _cache.Set(cacheKey, userTasks, cacheEntryOptions);
+
+                    cachedUserTasksPageNumbers.Add(cacheKey);
+                }
             }
             finally
             {
@@ -111,7 +124,7 @@ public class TaskService : ITaskService
         UserTaskDataModel userTaskToUpdate = MapUserTaskUpdateRequestToDataModel(id, request);
         _userTaskRepository.UpdateUserTask(userTaskToUpdate);
 
-        _cache.Remove(AppConstants.UserTaskCachingKey);
+        emptyUserTasksCache();
 
         return Result.Updated;
     }
@@ -130,7 +143,7 @@ public class TaskService : ITaskService
 
         _userTaskRepository.DeleteTaskDependentResources(id);
 
-        _cache.Remove(AppConstants.UserTaskCachingKey);
+        emptyUserTasksCache();
 
         return Result.Deleted;
     }
@@ -261,7 +274,14 @@ public class TaskService : ITaskService
         return Result.Deleted;
     }
 
+    private void emptyUserTasksCache()
+    {
+        cachedUserTasksPageNumbers.ForEach(pn =>
+            _cache.Remove(pn)
+        );
 
+        cachedUserTasksPageNumbers.Clear();
+    }
 
     private UserTaskDataModel MapUserTaskCreateRequestToDataModel(CreateTaskRequest request)
     {

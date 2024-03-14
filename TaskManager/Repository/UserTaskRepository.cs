@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using TaskManager.Constants;
 using TaskManager.DataModels;
 using TaskManager.Persistence;
 
@@ -21,10 +22,12 @@ public class UserTaskRepository : IUserTaskRepository
         return userTaskToCreate.Id;
     }
 
-    // Apply pagination to this
-    public async Task<List<UserTaskDataModel>> getAllUserTasks()
+    public async Task<List<UserTaskDataModel>> getAllUserTasks(int pageNumber)
     {
-        return await _dbContext.UserTasks.ToListAsync();
+        return await _dbContext.UserTasks
+            .Skip((pageNumber - 1) * AppConstants.PAGINATION_PAGE_SIZE)
+            .Take(AppConstants.PAGINATION_PAGE_SIZE)
+            .ToListAsync();
     }
 
     public UserTaskDataModel GetUserTaskById(Guid id)
