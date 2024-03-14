@@ -9,9 +9,9 @@ public class TasksController : ApiController
 {
     private readonly ITaskService _taskservice;
 
-    public TasksController(ITaskService _taskservice)
+    public TasksController(ITaskService taskservice)
     {
-        this._taskservice = _taskservice;
+        _taskservice = taskservice;
     }
 
     [HttpPost]
@@ -21,6 +21,17 @@ public class TasksController : ApiController
 
         return newTaskCreationResult.Match(
             newTaskId => getTaskCreatedAtActionResult(newTaskCreationResult.Value),
+            errors => Problem(errors)
+        );
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAllUserTasks()
+    {
+        ErrorOr<List<TaskResponse>> taskRetrievalResult = await _taskservice.getAllUserTasks();
+
+        return taskRetrievalResult.Match(
+            taskResponseList => Ok(taskResponseList),
             errors => Problem(errors)
         );
     }

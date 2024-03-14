@@ -7,9 +7,11 @@ public interface IUserTaskRepository
 {
     public Guid CreateUserTask(UserTaskDataModel userTaskToCreate);
     public UserTaskDataModel GetUserTaskById(Guid id);
+    public Task<List<UserTaskDataModel>> getAllUserTasks();
     public Boolean DoesUserTaskExist(Guid id);
     public void UpdateUserTask(UserTaskDataModel userTaskToUpdate);
     public void DeleteUserTask(UserTaskDataModel userTaskToDelete);
+    public void DeleteTaskDependentResources(Guid taskId);
     public Guid CreateUserTaskComment(UserTaskCommentDataModel userTaskCommentToCreate);
     public UserTaskCommentDataModel GetUserTaskCommentByIdWithoutTracking(Guid id);
     public List<UserTaskCommentDataModel> GetUserTaskCommentsByTaskId(Guid taskId);

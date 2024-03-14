@@ -7,6 +7,7 @@ public interface ITaskService
 {
     public ErrorOr<Guid> createTask(CreateTaskRequest request);
     public ErrorOr<TaskResponse> getTask(Guid id);
+    public Task<ErrorOr<List<TaskResponse>>> getAllUserTasks();
     public ErrorOr<Updated> UpdateTask(Guid id, UpdateTaskRequest request);
     public ErrorOr<Deleted> DeleteTask(Guid id);
     public ErrorOr<Guid> createTaskComment(CreateTaskCommentRequest request);

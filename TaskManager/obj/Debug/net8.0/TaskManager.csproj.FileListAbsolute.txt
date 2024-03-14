@@ -36,7 +36,6 @@
 /Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager/bin/Debug/net8.0/ErrorOr.dll
 /Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager/bin/Debug/net8.0/Microsoft.EntityFrameworkCore.dll
 /Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager/bin/Debug/net8.0/Microsoft.EntityFrameworkCore.Abstractions.dll
-/Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager/bin/Debug/net8.0/Microsoft.EntityFrameworkCore.InMemory.dll
 /Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager/obj/Debug/net8.0/TaskManager.sourcelink.json
 /Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager/bin/Debug/net8.0/Humanizer.dll
 /Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager/bin/Debug/net8.0/Microsoft.Bcl.AsyncInterfaces.dll
@@ -131,3 +130,10 @@
 /Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager/bin/Debug/net8.0/runtimes/win-arm64/native/e_sqlite3.dll
 /Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager/bin/Debug/net8.0/runtimes/win-x64/native/e_sqlite3.dll
 /Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager/bin/Debug/net8.0/runtimes/win-x86/native/e_sqlite3.dll
+/Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager/bin/Debug/net8.0/log4net.dll
+/Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager/bin/Debug/net8.0/Microsoft.Extensions.Logging.Log4Net.AspNetCore.dll
+/Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager/bin/Debug/net8.0/System.Configuration.ConfigurationManager.dll
+/Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager/bin/Debug/net8.0/System.Security.Cryptography.ProtectedData.dll
+/Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager/bin/Debug/net8.0/System.Security.Permissions.dll
+/Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager/bin/Debug/net8.0/runtimes/win/lib/netstandard2.0/System.Security.Cryptography.ProtectedData.dll
+/Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager/bin/Debug/net8.0/log4net.config

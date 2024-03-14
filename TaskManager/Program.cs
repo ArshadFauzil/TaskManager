@@ -2,15 +2,17 @@ using TaskManager.Persistence;
 using TaskManager.Repository;
 using TaskManager.Services.Tasks;
 using TaskManager.Validators;
-;
 
 var builder = WebApplication.CreateBuilder(args);
 {
     builder.Services.AddControllers();
+    builder.Services.AddMemoryCache();
     builder.Services.AddDbContext<TaskManagerDbContext>();
     builder.Services.AddScoped<ITaskService, TaskService>();
     builder.Services.AddScoped<IUserTaskValidator, UserTaskValidator>();
     builder.Services.AddScoped<IUserTaskRepository, UserTaskRepository>();
+    builder.Logging.AddLog4Net("./log4net.config");
+
 }
 
 // Add services to the container.

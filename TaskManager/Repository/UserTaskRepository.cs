@@ -22,9 +22,9 @@ public class UserTaskRepository : IUserTaskRepository
     }
 
     // Apply pagination to this
-    public List<UserTaskDataModel> getAllUserTasks()
+    public async Task<List<UserTaskDataModel>> getAllUserTasks()
     {
-        return _dbContext.UserTasks.ToList();
+        return await _dbContext.UserTasks.ToListAsync();
     }
 
     public UserTaskDataModel GetUserTaskById(Guid id)
@@ -42,6 +42,22 @@ public class UserTaskRepository : IUserTaskRepository
     public Boolean DoesUserTaskExist(Guid id)
     {
         return _dbContext.UserTasks.Any(t => t.Id == id);
+    }
+
+    public void DeleteTaskDependentResources(Guid taskId)
+    {
+        List<UserTaskCommentDataModel> userTaskRelatedComments = _dbContext.Comments
+            .Where(c => c.TaskId == taskId)
+            .ToList();
+
+        List<UserTaskFileDataModel> userTaskRelatedFiles = _dbContext.Files
+            .Where(c => c.TaskId == taskId)
+            .ToList();
+
+        userTaskRelatedComments.ForEach(comment => _dbContext.Comments.Remove(comment));
+        userTaskRelatedFiles.ForEach(file => _dbContext.Files.Remove(file));
+
+        _dbContext.SaveChanges();
     }
 
     public void UpdateUserTask(UserTaskDataModel userTaskToUpdate)

@@ -1,4 +1,6 @@
 using ErrorOr;
+using Microsoft.Extensions.Caching.Memory;
+using TaskManager.Constants;
 using TaskManager.Contracts.Task;
 using TaskManager.DataModels;
 using TaskManager.Enumerations;
@@ -10,29 +12,71 @@ namespace TaskManager.Services.Tasks;
 
 public class TaskService : ITaskService
 {
+
     private readonly IUserTaskRepository _userTaskRepository;
     private readonly IUserTaskValidator _userTaskValidator;
+    private readonly ILogger<TaskService> _logger;
+    private static readonly SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
+    private readonly IMemoryCache _cache;
 
     public TaskService(IUserTaskRepository userTaskRepository,
-                        IUserTaskValidator userTaskValidator)
+                        IUserTaskValidator userTaskValidator,
+                        IMemoryCache memoryCache,
+                        ILogger<TaskService> logger)
     {
         _userTaskRepository = userTaskRepository;
         _userTaskValidator = userTaskValidator;
+        _logger = logger;
+        _cache = memoryCache;
     }
 
     public ErrorOr<Guid> createTask(CreateTaskRequest request)
     {
         List<Error> errors = _userTaskValidator.validateUserTaskCreateRequest(request);
 
-        if (errors.Any())
+        if (errors.Count > 0)
         {
             return errors;
         }
 
         UserTaskDataModel userTaskToCreate = MapUserTaskCreateRequestToDataModel(request);
         Guid newId = _userTaskRepository.CreateUserTask(userTaskToCreate);
+
+        _cache.Remove(AppConstants.UserTaskCachingKey);
+
         return newId;
 
+    }
+
+    public async Task<ErrorOr<List<TaskResponse>>> getAllUserTasks()
+    {
+        if (_cache.TryGetValue(AppConstants.UserTaskCachingKey, out List<TaskResponse>? userTasks))
+        {
+            _logger.LogInformation("User Tasks list returned from cache.");
+        }
+        else
+        {
+            _logger.LogInformation("User Tasks not found in cache. Fetching from Database.");
+            try
+            {
+                await semaphore.WaitAsync();
+                List<UserTaskDataModel> userTaskDataModels = await _userTaskRepository.getAllUserTasks();
+                userTasks = MapUserTaskDataModelListToResponse(userTaskDataModels);
+
+                var cacheEntryOptions = new MemoryCacheEntryOptions()
+                    .SetSlidingExpiration(TimeSpan.FromSeconds(AppConstants.cachingSlidingExpiration))
+                    .SetAbsoluteExpiration(TimeSpan.FromSeconds(AppConstants.cachingAbsoluteExpiration))
+                    .SetPriority(CacheItemPriority.Normal)
+                    .SetSize(AppConstants.cachingMemorySize);
+                _cache.Set(AppConstants.UserTaskCachingKey, userTasks, cacheEntryOptions);
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        }
+
+        return userTasks;
     }
 
     public ErrorOr<TaskResponse> getTask(Guid id)
@@ -67,6 +111,8 @@ public class TaskService : ITaskService
         UserTaskDataModel userTaskToUpdate = MapUserTaskUpdateRequestToDataModel(id, request);
         _userTaskRepository.UpdateUserTask(userTaskToUpdate);
 
+        _cache.Remove(AppConstants.UserTaskCachingKey);
+
         return Result.Updated;
     }
 
@@ -79,6 +125,12 @@ public class TaskService : ITaskService
         }
 
         _userTaskRepository.DeleteUserTask(userTaskToDelete);
+
+        _logger.LogWarning("Deleting all User Task dependent resources such as Comments and Files.");
+
+        _userTaskRepository.DeleteTaskDependentResources(id);
+
+        _cache.Remove(AppConstants.UserTaskCachingKey);
 
         return Result.Deleted;
     }
@@ -279,6 +331,15 @@ public class TaskService : ITaskService
         });
 
         return dataModels;
+    }
+
+    private List<TaskResponse> MapUserTaskDataModelListToResponse(List<UserTaskDataModel> userTaskDataModels)
+    {
+        List<TaskResponse> responses = new();
+        userTaskDataModels.ForEach(userTaskDataModel =>
+            responses.Add(MapUserTaskDataModelToResponse(userTaskDataModel)));
+
+        return responses;
     }
 
     private TaskResponse MapUserTaskDataModelToResponse(UserTaskDataModel model)
