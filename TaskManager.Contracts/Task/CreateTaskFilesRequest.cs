@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore.Http;
 namespace TaskManager.Contracts.Task;
 
-public record CreateTaskFilesRequest(
+public record CreateTaskFileRequest(
     Guid? TaskId,
-    List<CreateTaskFileContract>? Files
+    IFormFile? File,
+    string? FileType
 );

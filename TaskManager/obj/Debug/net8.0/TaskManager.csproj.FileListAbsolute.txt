@@ -137,3 +137,9 @@
 /Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager/bin/Debug/net8.0/System.Security.Permissions.dll
 /Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager/bin/Debug/net8.0/runtimes/win/lib/netstandard2.0/System.Security.Cryptography.ProtectedData.dll
 /Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager/bin/Debug/net8.0/log4net.config
+/Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager/bin/Debug/net8.0/System.Web.Cors.dll
+/Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager/bin/Debug/net8.0/System.Net.Http.Formatting.dll
+/Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager/bin/Debug/net8.0/System.Web.Http.dll
+/Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager/bin/Debug/net8.0/System.Web.Http.Cors.dll
+/Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager/bin/Debug/net8.0/Newtonsoft.Json.dll
+/Users/arshadfauzil/code_projects/TaskManager/TaskManager/TaskManager/bin/Debug/net8.0/Newtonsoft.Json.Bson.dll

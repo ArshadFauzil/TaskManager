@@ -66,7 +66,9 @@ public class TaskService : ITaskService
             {
                 await semaphore.WaitAsync();
                 List<UserTaskDataModel> userTaskDataModels = await _userTaskRepository.getAllUserTasks(pageNumber);
-                userTasks = MapUserTaskDataModelListToResponse(userTaskDataModels);
+                int userTasksCount = _userTaskRepository.getUserTaskCount();
+                int numberOfPagesOfUserTasks = getNumberOfPagesOfUserTasks(userTasksCount);
+                userTasks = MapUserTaskDataModelListToResponse(numberOfPagesOfUserTasks, userTaskDataModels);
 
                 var cacheEntryOptions = new MemoryCacheEntryOptions()
                     .SetSlidingExpiration(TimeSpan.FromSeconds(AppConstants.CACHING_SLIDING_EXPIRATION_SECONDS))
@@ -95,10 +97,12 @@ public class TaskService : ITaskService
     public ErrorOr<TaskResponse> getTask(Guid id)
     {
         UserTaskDataModel response = _userTaskRepository.GetUserTaskById(id);
+        int userTasksCount = _userTaskRepository.getUserTaskCount();
+        int numberOfPagesOfUserTasks = getNumberOfPagesOfUserTasks(userTasksCount);
 
         if (response is not null)
         {
-            return MapUserTaskDataModelToResponse(response);
+            return MapUserTaskDataModelToResponse(numberOfPagesOfUserTasks, response);
         }
         else
         {
@@ -134,7 +138,7 @@ public class TaskService : ITaskService
         UserTaskDataModel userTaskToDelete = _userTaskRepository.GetUserTaskById(id);
         if (userTaskToDelete is null)
         {
-            return Errors.Tasks.NotFoundValidation;
+            return Errors.Tasks.NotFound;
         }
 
         _userTaskRepository.DeleteUserTask(userTaskToDelete);
@@ -179,8 +183,21 @@ public class TaskService : ITaskService
             return Errors.Tasks.NotFoundValidation;
         }
 
-        return MapUserTaskDataCommentModelToResponse(_userTaskRepository.GetUserTaskCommentsByTaskId(taskId));
+        return MapUserTaskDataCommentsModelToResponse(_userTaskRepository.GetUserTaskCommentsByTaskId(taskId));
+    }
 
+    public ErrorOr<TaskCommentResponse> getUserComment(Guid id)
+    {
+        UserTaskCommentDataModel response = _userTaskRepository.GetUserTaskCommentById(id);
+
+        if (response is not null)
+        {
+            return MapUserTaskDataCommentModelToResponse(response);
+        }
+        else
+        {
+            return Errors.Comments.NotFound;
+        }
     }
 
     public ErrorOr<Updated> UpdateTaskComment(Guid id, UpdateTaskCommentRequest request)
@@ -221,34 +238,31 @@ public class TaskService : ITaskService
 
     // FILES
 
-    public async Task<ErrorOr<List<Guid>>> CreateUserTaskFile(CreateTaskFilesRequest request)
+    public async Task<ErrorOr<Guid>> CreateUserTaskFile(CreateTaskFileRequest request)
     {
         List<Error> errors = _userTaskValidator.ValidateUserTaskFileCreateRequest(request);
-        if (errors.Any())
+        if (errors.Count > 0)
         {
             return errors;
         }
 
         try
         {
-            List<UserTaskFileDataModel> dataModels = MapUserTaskFileCreateRequestToDataModel(request);
+            UserTaskFileDataModel dataModel = MapUserTaskFileCreateRequestToDataModel(request);
 
-            List<Guid> fileIds = new();
-            foreach (UserTaskFileDataModel dataModel in dataModels)
-            {
-                Guid fileId = await _userTaskRepository.CreateUserTaskFile(dataModel);
-                fileIds.Add(fileId);
-            }
+            Guid fileId = await _userTaskRepository.CreateUserTaskFile(dataModel);
 
-            return fileIds;
+            return fileId;
         }
         catch (Exception ex)
         {
+            _logger.LogError("An error occurred when attempting to upload a file during"
+            + " User Task File creation request");
             throw ex;
         }
     }
 
-    public async Task<ErrorOr<TaskFileResponse>> getUserTaskFilesByTaskId(Guid taskId)
+    public async Task<ErrorOr<List<TaskFileResponse>>> getUserTaskFilesByTaskId(Guid taskId)
     {
         bool userTaskExists = _userTaskRepository.DoesUserTaskExist(taskId);
         if (!userTaskExists)
@@ -258,7 +272,20 @@ public class TaskService : ITaskService
 
         List<UserTaskFileDataModel> fileDataModels = await _userTaskRepository.getUserTaskFilesByTaskId(taskId);
 
-        return MapUserTaskDataFileModelToResponse(taskId, fileDataModels);
+        return MapUserTaskDataFileModelToResponse(fileDataModels);
+    }
+
+    public ErrorOr<TaskFileResponse> getUserTaskFileById(Guid id)
+    {
+        UserTaskFileDataModel response = _userTaskRepository.getUserTaskFileById(id);
+        if (response is not null)
+        {
+            return MapUserTaskDataFileModelToResponse(response);
+        }
+        else
+        {
+            return Errors.Files.NotFound;
+        }
     }
 
     public ErrorOr<Deleted> DeleteTaskFile(Guid id)
@@ -281,6 +308,11 @@ public class TaskService : ITaskService
         );
 
         cachedUserTasksPageNumbers.Clear();
+    }
+
+    private int getNumberOfPagesOfUserTasks(int userTasksCount)
+    {
+        return (userTasksCount + AppConstants.PAGINATION_PAGE_SIZE - 1) / AppConstants.PAGINATION_PAGE_SIZE;
     }
 
     private UserTaskDataModel MapUserTaskCreateRequestToDataModel(CreateTaskRequest request)
@@ -329,40 +361,30 @@ public class TaskService : ITaskService
         );
     }
 
-    private List<UserTaskFileDataModel> MapUserTaskFileCreateRequestToDataModel(CreateTaskFilesRequest request)
+    private UserTaskFileDataModel MapUserTaskFileCreateRequestToDataModel(CreateTaskFileRequest request)
     {
-        List<UserTaskFileDataModel> dataModels = new();
-        List<CreateTaskFileContract>? files = request.Files;
+        var stream = new MemoryStream();
+        request.File.CopyTo(stream);
 
-        files.ForEach(fileContract =>
-        {
-            var stream = new MemoryStream();
-            fileContract.File.CopyTo(stream);
-
-            dataModels.Add(
-                new UserTaskFileDataModel(
-                    request.TaskId.Value,
-                    fileContract.File.FileName,
-                    fileContract.FileType,
-                    stream.ToArray(),
-                    DateTime.Now
-                )
-            );
-        });
-
-        return dataModels;
+        return new UserTaskFileDataModel(
+            request.TaskId.Value,
+            request.File.FileName,
+            request.FileType,
+            stream.ToArray(),
+            DateTime.Now
+        );
     }
 
-    private List<TaskResponse> MapUserTaskDataModelListToResponse(List<UserTaskDataModel> userTaskDataModels)
+    private List<TaskResponse> MapUserTaskDataModelListToResponse(int numberOfPagesOfUserTasks, List<UserTaskDataModel> userTaskDataModels)
     {
         List<TaskResponse> responses = new();
         userTaskDataModels.ForEach(userTaskDataModel =>
-            responses.Add(MapUserTaskDataModelToResponse(userTaskDataModel)));
+            responses.Add(MapUserTaskDataModelToResponse(numberOfPagesOfUserTasks, userTaskDataModel)));
 
         return responses;
     }
 
-    private TaskResponse MapUserTaskDataModelToResponse(UserTaskDataModel model)
+    private TaskResponse MapUserTaskDataModelToResponse(int numberOfPagesOfUserTasks, UserTaskDataModel model)
     {
         return new TaskResponse(
             model.Id,
@@ -370,48 +392,55 @@ public class TaskService : ITaskService
             model.Description,
             model.DueDate,
             model.Status.ToString(),
-            model.LastUpdatedDate
+            model.LastUpdatedDate,
+            numberOfPagesOfUserTasks
         );
     }
 
-    private List<TaskCommentResponse> MapUserTaskDataCommentModelToResponse(List<UserTaskCommentDataModel> comments)
+    private List<TaskCommentResponse> MapUserTaskDataCommentsModelToResponse(List<UserTaskCommentDataModel> comments)
     {
         List<TaskCommentResponse> responseList = new();
 
         comments.ForEach(c =>
         {
-            responseList.Add(new TaskCommentResponse(
-                c.Id,
-                c.TaskId,
-                c.Comment,
-                c.LastUpdatedDate
-            ));
+            responseList.Add(MapUserTaskDataCommentModelToResponse(c));
         });
 
         return responseList;
     }
 
-    private TaskFileResponse MapUserTaskDataFileModelToResponse(Guid taskId, List<UserTaskFileDataModel> files)
+    private TaskCommentResponse MapUserTaskDataCommentModelToResponse(UserTaskCommentDataModel comment)
     {
-        List<TaskFileResponseFileContract> fileList = new();
+        return new TaskCommentResponse(
+                comment.Id,
+                comment.TaskId,
+                comment.Comment,
+                comment.LastUpdatedDate
+            );
+    }
+
+    private List<TaskFileResponse> MapUserTaskDataFileModelToResponse(List<UserTaskFileDataModel> files)
+    {
+        List<TaskFileResponse> fileList = new();
 
         foreach (UserTaskFileDataModel file in files)
         {
-            var dataStream = new MemoryStream(file.FileData);
+            fileList.Add(MapUserTaskDataFileModelToResponse(file));
+        }
 
-            fileList.Add(new TaskFileResponseFileContract(
+        return fileList;
+    }
+
+    private TaskFileResponse MapUserTaskDataFileModelToResponse(UserTaskFileDataModel file)
+    {
+        return new TaskFileResponse(
                 file.Id,
-                new StreamContent(dataStream),
+                file.TaskId,
+                new ByteArrayContent(file.FileData),
                 file.FileName,
                 file.FileType,
                 file.LastUpdatedDate
-            ));
-        }
-
-        return new TaskFileResponse(
-            taskId,
-            fileList
-        );
+            );
     }
 
 }

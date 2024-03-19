@@ -7,8 +7,8 @@ public static class AppConstants
     public const int CACHING_ABSOLUTE_EXPIRATION_SECONDS = 3600;
     public const int CACHING_MEMORY_SIZE = 1024;
 
-    // PAGINATION
 
-    public const int PAGINATION_PAGE_SIZE = 2;
+    // PAGINATION
+    public const int PAGINATION_PAGE_SIZE = 10;
 
 }

@@ -30,6 +30,11 @@ public class UserTaskRepository : IUserTaskRepository
             .ToListAsync();
     }
 
+    public int getUserTaskCount()
+    {
+        return _dbContext.UserTasks.Count();
+    }
+
     public UserTaskDataModel GetUserTaskById(Guid id)
     {
         if (_dbContext.UserTasks.Find(id) is UserTaskDataModel userTaskDataModel)
@@ -107,6 +112,18 @@ public class UserTaskRepository : IUserTaskRepository
             .ToList();
     }
 
+    public UserTaskCommentDataModel GetUserTaskCommentById(Guid id)
+    {
+        if (_dbContext.Comments.Find(id) is UserTaskCommentDataModel userTaskCommentDataModel)
+        {
+            return userTaskCommentDataModel;
+        }
+        else
+        {
+            return null;
+        }
+    }
+
     public void UpdateUserTaskComment(UserTaskCommentDataModel userTaskCommentToUpdate)
     {
         _dbContext.Comments.Update(userTaskCommentToUpdate);
@@ -138,23 +155,11 @@ public class UserTaskRepository : IUserTaskRepository
             .ToListAsync();
     }
 
-    public UserTaskFileDataModel getUserTaskFilesById(Guid id)
+    public UserTaskFileDataModel getUserTaskFileById(Guid id)
     {
         if (_dbContext.Files.Find(id) is UserTaskFileDataModel userTaskFile)
         {
             return userTaskFile;
-        }
-        else
-        {
-            return null;
-        }
-    }
-
-    public UserTaskFileDataModel getUserTaskFileById(Guid id)
-    {
-        if (_dbContext.Files.Find(id) is UserTaskFileDataModel userTaskFileData)
-        {
-            return userTaskFileData;
         }
         else
         {

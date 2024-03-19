@@ -1,3 +1,4 @@
+using System.Web.Http.Cors;
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
 using TaskManager.Contracts.Task;
@@ -71,6 +72,8 @@ public class TasksController : ApiController
 
 
     //COMMENTS
+    // Comment related APIs are defined in the same Task Controller since they are 
+    // dependent reources on Tasks
 
     [HttpPost]
     [Route("comments")]
@@ -99,6 +102,17 @@ public class TasksController : ApiController
         );
     }
 
+    [HttpGet("comments/{id}")]
+    public IActionResult GetComment(Guid id)
+    {
+        ErrorOr<TaskCommentResponse> taskCommentRetrievalResult = _taskservice.getUserComment(id);
+
+        return taskCommentRetrievalResult.Match(
+            response => Ok(response),
+            errors => Problem(errors)
+        );
+    }
+
     [HttpPut("comments/{id}")]
     public IActionResult UpdateTaskComment(Guid id, UpdateTaskCommentRequest request)
     {
@@ -123,15 +137,17 @@ public class TasksController : ApiController
 
 
     //FILES
+    // File related APIs are defined in the same Task Controller since they are 
+    // dependent reources on Tasks
 
     [HttpPost]
     [Route("files")]
-    public async Task<IActionResult> CreateTaskFile([FromForm] CreateTaskFilesRequest request)
+    public async Task<IActionResult> CreateTaskFile([FromForm] CreateTaskFileRequest request)
     {
-        ErrorOr<List<Guid>> newTaskFileCreationResult = await _taskservice.CreateUserTaskFile(request);
+        ErrorOr<Guid> newTaskFileCreationResult = await _taskservice.CreateUserTaskFile(request);
 
         return newTaskFileCreationResult.Match(
-            newTaskFileIds => getTaskFileCreatedAtActionResult(newTaskFileIds),
+            newTaskFileId => getTaskFileCreatedAtActionResult(newTaskFileId),
             errors => Problem(errors)
         );
     }
@@ -139,13 +155,24 @@ public class TasksController : ApiController
     [HttpGet("{taskId}/files")]
     public async Task<IActionResult> GetTaskFilesByTaskId(Guid taskId)
     {
-        ErrorOr<TaskFileResponse> fileRetrievalResult = await _taskservice.getUserTaskFilesByTaskId(taskId);
+        ErrorOr<List<TaskFileResponse>> fileRetrievalResult = await _taskservice.getUserTaskFilesByTaskId(taskId);
 
         return fileRetrievalResult.Match(
             taskFileResponse =>
             {
-                return taskFileResponse.files.Count > 0 ? Ok(taskFileResponse) : NoContent();
+                return taskFileResponse.Count > 0 ? Ok(taskFileResponse) : NoContent();
             },
+            errors => Problem(errors)
+        );
+    }
+
+    [HttpGet("files/{id}")]
+    public IActionResult GetTaskFileById(Guid id)
+    {
+        ErrorOr<TaskFileResponse> taskFileRetrievalResult = _taskservice.getUserTaskFileById(id);
+
+        return taskFileRetrievalResult.Match(
+            response => Ok(response),
             errors => Problem(errors)
         );
     }
@@ -178,12 +205,12 @@ public class TasksController : ApiController
             value: newCommentId);
     }
 
-    private CreatedAtActionResult getTaskFileCreatedAtActionResult(List<Guid> newFileIds)
+    private CreatedAtActionResult getTaskFileCreatedAtActionResult(Guid newFileId)
     {
         return CreatedAtAction(
             null,
             null,
-            value: newFileIds);
+            value: newFileId);
     }
 
 

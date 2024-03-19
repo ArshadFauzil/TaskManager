@@ -41,7 +41,7 @@ public class UserTaskValidator : IUserTaskValidator
 
         errors.AddRange(ValidateUserTaskCreateAndUpdateRequest(title, description, dueDate));
 
-        if (!Enum.IsDefined(typeof(StatusEnum), status))
+        if (status is not null && !Enum.IsDefined(typeof(StatusEnum), status))
         {
             errors.Add(Errors.Tasks.InvalidStatusValue);
         }
@@ -80,47 +80,16 @@ public class UserTaskValidator : IUserTaskValidator
         return errors;
     }
 
-    public List<Error> ValidateUserTaskFileCreateRequest(CreateTaskFilesRequest request)
+    public List<Error> ValidateUserTaskFileCreateRequest(CreateTaskFileRequest request)
     {
         List<Error> errors = new();
         Guid? taskId = request.TaskId;
-        List<CreateTaskFileContract>? files = request.Files;
+        IFormFile? file = request.File;
+        string? fileType = request.FileType;
 
-        if (taskId is null || files is null)
+        if (taskId is null || file is null || fileType is null)
         {
-            errors.Add(Errors.Files.MissingFieldsFilesCreateRequest);
-        }
-
-        bool nullValuesIsList = false;
-        bool missingFieldsInFileData = false;
-        files.ForEach(file =>
-        {
-            if (file is null)
-            {
-                nullValuesIsList = true;
-            }
-            else
-            {
-                IFormFile? fileForm = file.File;
-                string? fileType = file.FileType;
-
-                if (fileForm is null || fileType is null)
-                {
-                    missingFieldsInFileData = true;
-                }
-            }
-
-
-        });
-
-        if (nullValuesIsList)
-        {
-            errors.Add(Errors.Files.MissingItemsInFilesList);
-        }
-
-        if (missingFieldsInFileData)
-        {
-            errors.Add(Errors.Files.MissingFieldsFilesCreateRequestFileData);
+            errors.Add(Errors.Files.MissingFieldsFileCreateRequest);
         }
 
         return errors;

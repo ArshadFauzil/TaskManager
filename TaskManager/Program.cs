@@ -5,6 +5,13 @@ using TaskManager.Validators;
 
 var builder = WebApplication.CreateBuilder(args);
 {
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AllowAll", builder =>
+            builder.AllowAnyOrigin()
+                   .AllowAnyMethod()
+                   .AllowAnyHeader());
+    });
     builder.Services.AddControllers();
     builder.Services.AddMemoryCache();
     builder.Services.AddDbContext<TaskManagerDbContext>();
@@ -12,7 +19,6 @@ var builder = WebApplication.CreateBuilder(args);
     builder.Services.AddScoped<IUserTaskValidator, UserTaskValidator>();
     builder.Services.AddScoped<IUserTaskRepository, UserTaskRepository>();
     builder.Logging.AddLog4Net("./log4net.config");
-
 }
 
 // Add services to the container.
@@ -22,6 +28,7 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 {
+    app.UseCors("AllowAll");
     app.UseExceptionHandler("/error");
     app.UseHttpsRedirection();
     app.MapControllers();

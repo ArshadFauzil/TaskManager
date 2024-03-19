@@ -1,6 +1,10 @@
 namespace TaskManager.Contracts.Task;
 
 public record TaskFileResponse(
+    Guid Id,
     Guid TaskId,
-    List<TaskFileResponseFileContract> files
+    ByteArrayContent file,
+    string fileName,
+    string fileType,
+    DateTime LastUpdatedDate
 );

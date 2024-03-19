@@ -6,5 +6,6 @@ public record TaskResponse(
     string Description,
     DateTime DueDate,
     string Status,
-    DateTime LastUpdatedDate
+    DateTime LastUpdatedDate,
+    int NumberOfPagesOfUserTasks
 );

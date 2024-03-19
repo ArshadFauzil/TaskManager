@@ -12,10 +12,12 @@ public interface ITaskService
     public ErrorOr<Deleted> DeleteTask(Guid id);
     public ErrorOr<Guid> createTaskComment(CreateTaskCommentRequest request);
     public ErrorOr<List<TaskCommentResponse>> getUserTaskCommentsByTaskId(Guid taskId);
+    public ErrorOr<TaskCommentResponse> getUserComment(Guid id);
     public ErrorOr<Updated> UpdateTaskComment(Guid id, UpdateTaskCommentRequest request);
     public ErrorOr<Deleted> DeleteTaskComment(Guid id);
-    public Task<ErrorOr<List<Guid>>> CreateUserTaskFile(CreateTaskFilesRequest request);
-    public Task<ErrorOr<TaskFileResponse>> getUserTaskFilesByTaskId(Guid taskId);
+    public Task<ErrorOr<Guid>> CreateUserTaskFile(CreateTaskFileRequest request);
+    public Task<ErrorOr<List<TaskFileResponse>>> getUserTaskFilesByTaskId(Guid taskId);
+    public ErrorOr<TaskFileResponse> getUserTaskFileById(Guid id);
     public ErrorOr<Deleted> DeleteTaskFile(Guid id);
 
 }

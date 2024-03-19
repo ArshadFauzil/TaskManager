@@ -52,49 +52,47 @@ public static class Errors
 
     public static class Comments
     {
+
+        public static Error NotFound => Error.NotFound(
+            code: "Comment.NotFound",
+            description: "Comment of given ID not found");
+
         public static Error MissingFieldsCommentCreateRequest => Error.Validation(
-            code: "Task.EmptyCommentCreateRequest",
+            code: "Comment.EmptyCommentCreateRequest",
             description: "Required fields not provided in Comment update request. Required fields are" +
              $" TaskId and Comment"
         );
 
         public static Error MissingFieldsCommentUpdateRequest => Error.Validation(
-            code: "Task.EmptyCommentUpdateRequest",
+            code: "Comment.EmptyCommentUpdateRequest",
             description: "Required fields not provided in Comment update request. Required fields are" +
              $" Comment"
         );
 
         public static Error NotFoundValidation => Error.Validation(
-            code: "Task.NotFoundValidation",
+            code: "Comment.NotFoundValidation",
             description: "Task Comment of given ID not found");
 
         public static Error InvalidComment => Error.Validation(
-            code: "Task.InvalidComment",
+            code: "Comment.InvalidComment",
             description: $"Comment must be at least {UserTaskCommentDataModel.MinCommentLength}" +
                 $" characters long and at most {UserTaskCommentDataModel.MaxCommentLength} characters long.");
     }
 
     public static class Files
     {
-        public static Error MissingFieldsFilesCreateRequest => Error.Validation(
-            code: "Task.EmptyFilesCreateRequest",
+        public static Error NotFound => Error.NotFound(
+            code: "File.NotFound",
+            description: "File of given ID not found");
+
+        public static Error MissingFieldsFileCreateRequest => Error.Validation(
+            code: "File.EmptyFilesCreateRequest",
             description: "Required fields not provided in Task Files Create request. Required fields are" +
-             $" TaskId and Files."
-        );
-
-        public static Error MissingItemsInFilesList => Error.Validation(
-            code: "Task.MissingItemsInFilesList",
-            description: "One or more items in the Files list are null. List cannot contain null values."
-        );
-
-        public static Error MissingFieldsFilesCreateRequestFileData => Error.Validation(
-            code: "Task.MissingFiledsFileDataCreateRequest",
-            description: "One or more fields in the File Data List members in the User task File Creation request" +
-                " not provided. Required fields are File and FileType."
+             $" TaskId, File and FileType."
         );
 
         public static Error NotFoundValidation => Error.Validation(
-            code: "Task.NotFoundValidation",
+            code: "File.NotFoundValidation",
             description: "Task File of given ID not found");
     }
 }
